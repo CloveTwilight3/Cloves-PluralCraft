@@ -1,6 +1,5 @@
 package com.mazeymoos.cpc;
 
-import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -16,6 +15,7 @@ import com.google.gson.GsonBuilder;
 import com.mazeymoos.cpc.commands.SystemCommand;
 import com.mazeymoos.cpc.commands.FrontCommand;
 import com.mazeymoos.cpc.commands.ChatProxyListener;
+import static net.minecraft.server.command.CommandManager.literal;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 
@@ -30,13 +30,20 @@ public class ClovesPluralCraft implements ModInitializer {
 	public void onInitialize() {
 		System.out.println("[CPC] " + MOD_NAME + " Loaded!");
 		loadAllSystems();
+
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			SystemCommand.register(dispatcher);
 			FrontCommand.register(dispatcher);
+
+			// Aliases registration
+			dispatcher.register(literal("sys").redirect(dispatcher.getRoot().getChild("system")));
+			dispatcher.register(literal("f").redirect(dispatcher.getRoot().getChild("front")));
+			dispatcher.register(literal("member").redirect(dispatcher.getRoot().getChild("front")));
+			dispatcher.register(literal("proxy").redirect(dispatcher.getRoot().getChild("front")));
 		});
+
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> saveAllSystems());
 
-		// Add in Proxy Listener
 		ChatProxyListener.register();
 	}
 
