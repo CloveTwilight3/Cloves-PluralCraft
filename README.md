@@ -13,7 +13,6 @@ Clove's PluralCraft is a Minecraft mod/plugin that allows players to manage and 
 ---
 
 ## Versions
-### Fabric Version
 - Designed for **Minecraft 1.21.x**.
 - Uses **Fabric API** for integration.
 - Commands:
@@ -29,8 +28,7 @@ Clove's PluralCraft is a Minecraft mod/plugin that allows players to manage and 
 ---
 
 ## Installation
-### Fabric
-1. Download `cloves-pluralcraft-fabric.jar`.
+1. Download `cloves-pluralcraft.jar`.
 2. Place it in the `mods/` folder.
 3. Install **Fabric API**.
 4. Start the server.
@@ -38,7 +36,7 @@ Clove's PluralCraft is a Minecraft mod/plugin that allows players to manage and 
 ---
 
 ## Configuration
-The plugin/mod generates a default `config/cpc/` folder (Fabric). You can edit these files to customize behavior.
+The plugin/mod generates a default `config/cpc/` folder. You can edit these files to customize behavior.
 
 
 ---
