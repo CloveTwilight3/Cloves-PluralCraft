@@ -3,19 +3,22 @@ package com.mazeymoos.cpc;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
 import com.mazeymoos.cpc.commands.SystemCommand;
 import com.mazeymoos.cpc.commands.FrontCommand;
 import com.mazeymoos.cpc.commands.ChatProxyListener;
+import com.mazeymoos.cpc.listeners.SkinChanger;
+
 import static net.minecraft.server.command.CommandManager.literal;
+
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 
@@ -23,6 +26,8 @@ public class ClovesPluralCraft implements ModInitializer {
 	public static final String MOD_ID = "cloves-pluralcraft";
 	public static final String MOD_NAME = "Clove's PluralCraft";
 	private static final Path CONFIG_DIR = Paths.get("config/cpc");
+	public static final Path SKINS_DIR = Paths.get("config/cpc/skins");
+	private static final Path SYSTEMS_DIR = Paths.get("config/cpc/systems");
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	public static final Map<UUID, SystemData> systemDataMap = new HashMap<>();
 
@@ -43,15 +48,18 @@ public class ClovesPluralCraft implements ModInitializer {
 		});
 
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> saveAllSystems());
-
 		ChatProxyListener.register();
 	}
 
 	public static void loadAllSystems() {
 		try {
 			Files.createDirectories(CONFIG_DIR);
-			Files.list(CONFIG_DIR).forEach(path -> {
+			Files.createDirectories(SKINS_DIR);
+			Files.createDirectories(SYSTEMS_DIR);
+
+			Files.list(SYSTEMS_DIR).forEach(path -> {
 				try {
+					if (!path.toString().endsWith(".json")) return;
 					UUID uuid = UUID.fromString(path.getFileName().toString().replace(".json", ""));
 					SystemData data = GSON.fromJson(Files.readString(path), SystemData.class);
 					systemDataMap.put(uuid, data);
@@ -70,7 +78,7 @@ public class ClovesPluralCraft implements ModInitializer {
 
 	public static void saveSystem(UUID uuid) {
 		try {
-			Path filePath = CONFIG_DIR.resolve(uuid.toString() + ".json");
+			Path filePath = SYSTEMS_DIR.resolve(uuid.toString() + ".json");
 			Files.writeString(filePath, GSON.toJson(systemDataMap.get(uuid)));
 		} catch (Exception e) {
 			System.err.println("[CPC] Failed to save system file: " + uuid);
@@ -86,6 +94,7 @@ public class ClovesPluralCraft implements ModInitializer {
 		public String systemName;
 		public Map<String, Boolean> fronts = new HashMap<>();
 		public String activeFront = "";
+		public Map<String, String> frontSkins = new HashMap<>();
 
 		public SystemData(String systemName) {
 			this.systemName = systemName;

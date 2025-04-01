@@ -9,6 +9,8 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import com.mazeymoos.cpc.ClovesPluralCraft;
+import com.mazeymoos.cpc.listeners.SkinChanger;
+
 import java.util.UUID;
 
 public class FrontCommand {
@@ -45,6 +47,17 @@ public class FrontCommand {
                 .then(CommandManager.literal("clear")
                         .executes(ctx -> handleFront(ctx.getSource(), "clear", ""))
                 )
+                .then(CommandManager.literal("skin")
+                        .then(CommandManager.argument("name", StringArgumentType.string()).suggests(MEMBER_SUGGESTIONS)
+                                .then(CommandManager.argument("url", StringArgumentType.string())
+                                        .executes(ctx -> setSkin(
+                                                ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "name"),
+                                                StringArgumentType.getString(ctx, "url")
+                                        ))
+                                )
+                        )
+                )
         );
     }
 
@@ -52,7 +65,7 @@ public class FrontCommand {
         UUID uuid = source.getPlayer().getUuid();
 
         if (!ClovesPluralCraft.systemDataMap.containsKey(uuid)) {
-            source.sendFeedback(() -> Text.literal("§d[CPC] §cYou do not have a system!"), false);
+            source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7cYou do not have a system!"), false);
             return Command.SINGLE_SUCCESS;
         }
 
@@ -61,29 +74,33 @@ public class FrontCommand {
         switch (action) {
             case "add":
                 data.fronts.put(name, true);
-                source.sendFeedback(() -> Text.literal("§d[CPC] §aFront '" + name + "' added!"), false);
+                source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7aFront '" + name + "' added!"), false);
                 break;
 
             case "delete":
                 if (data.fronts.remove(name) != null) {
-                    source.sendFeedback(() -> Text.literal("§d[CPC] §aFront '" + name + "' deleted!"), false);
+                    source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7aFront '" + name + "' deleted!"), false);
                 } else {
-                    source.sendFeedback(() -> Text.literal("§d[CPC] §cFront '" + name + "' does not exist!"), false);
+                    source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7cFront '" + name + "' does not exist!"), false);
                 }
                 break;
 
             case "set":
                 if (data.fronts.containsKey(name)) {
                     data.activeFront = name;
-                    source.sendFeedback(() -> Text.literal("§d[CPC] §aNow fronting as '" + name + "'!"), false);
+                    source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7aNow fronting as '" + name + "'!"), false);
+                    String skin = data.frontSkins.getOrDefault(name, "");
+                    if (!skin.isEmpty()) {
+                        SkinChanger.applySkin(source.getPlayer(), skin);
+                    }
                 } else {
-                    source.sendFeedback(() -> Text.literal("§d[CPC] §cFront '" + name + "' does not exist!"), false);
+                    source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7cFront '" + name + "' does not exist!"), false);
                 }
                 break;
 
             case "clear":
                 data.activeFront = "";
-                source.sendFeedback(() -> Text.literal("§d[CPC] §aFront cleared!"), false);
+                source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7aFront cleared!"), false);
                 break;
         }
 
@@ -91,18 +108,49 @@ public class FrontCommand {
         return Command.SINGLE_SUCCESS;
     }
 
+    private static int setSkin(ServerCommandSource source, String frontName, String skinUrl) {
+        UUID uuid = source.getPlayer().getUuid();
+
+        if (!ClovesPluralCraft.systemDataMap.containsKey(uuid)) {
+            source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7cYou do not have a system!"), false);
+            return Command.SINGLE_SUCCESS;
+        }
+
+        ClovesPluralCraft.SystemData data = ClovesPluralCraft.systemDataMap.get(uuid);
+
+        // Check if the front exists
+        if (!data.fronts.containsKey(frontName)) {
+            source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7cFront '" + frontName + "' does not exist!"), false);
+            return Command.SINGLE_SUCCESS;
+        }
+
+        // Save the skin URL for this front
+        data.frontSkins.put(frontName, skinUrl);
+        ClovesPluralCraft.saveSystem(uuid);
+
+        // Only apply the skin if the specified front is the currently active front
+        if (frontName.equals(data.activeFront)) {
+            SkinChanger.applySkin(source.getPlayer(), skinUrl);
+            source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7aSkin for '" + frontName + "' updated and applied!"), false);
+        } else {
+            source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7aSkin for '" + frontName + "' saved! It will be applied when you switch to this front."), false);
+        }
+
+        return Command.SINGLE_SUCCESS;
+    }
+
     private static int listMembers(ServerCommandSource source) {
         UUID uuid = source.getPlayer().getUuid();
 
         if (!ClovesPluralCraft.systemDataMap.containsKey(uuid)) {
-            source.sendFeedback(() -> Text.literal("§d[CPC] §cYou do not have a system!"), false);
+            source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7cYou do not have a system!"), false);
             return Command.SINGLE_SUCCESS;
         }
 
         ClovesPluralCraft.SystemData data = ClovesPluralCraft.systemDataMap.get(uuid);
         String members = String.join(", ", data.fronts.keySet());
 
-        source.sendFeedback(() -> Text.literal("§d[CPC] §aSystem members: §f" + members), false);
+        source.sendFeedback(() -> Text.literal("\u00a7d[CPC] \u00a7aSystem members: \u00a7f" + members), false);
         return Command.SINGLE_SUCCESS;
     }
 }
