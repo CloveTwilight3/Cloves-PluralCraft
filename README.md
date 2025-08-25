@@ -46,5 +46,7 @@ This project is open-source under the **Apache-2.0 Licence**.
 
 ---
 
-## Credits
-- **Developer:** Mazey-Jessica Emily Twilight
+# Contributors
+<a href="https://github.com/CloveTwilight3/clovetwilight3/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=CloveTwilight3/Cloves-PluralCraft" />
+</a>
