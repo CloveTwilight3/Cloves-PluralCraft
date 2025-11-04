@@ -40,7 +40,7 @@ The plugin/mod generates a default `config/cpc/` folder. You can edit these file
 
 ---
 
-# Help
+## Help
 If you need help. [join our discord](https://discord.gg/k8HrBvDaQn)
 
 ---
